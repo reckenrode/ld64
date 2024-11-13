@@ -43,10 +43,6 @@
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
 #include <dispatch/dispatch.h>
-#include <os/lock_private.h>
-extern "C" {
-    #include <corecrypto/ccsha2.h>
-}
 
 #include <mutex>
 #include <string>
@@ -56,9 +52,10 @@ extern "C" {
 #include <iostream>
 #include <fstream>
 
-#include <CommonCrypto/CommonDigest.h>
 #include <AvailabilityMacros.h>
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
 
 #include "ExportsTrie.h"
 
@@ -79,6 +76,17 @@ uint32_t sAdrpNA = 0;
 uint32_t sAdrpNoped = 0;
 uint32_t sAdrpNotNoped = 0;
 
+static void
+EVP_MD_cleanup(EVP_MD** digest) {
+	EVP_MD_free(*digest);
+	*digest = nullptr;
+}
+
+static void
+EVP_MD_CTX_cleanup(EVP_MD_CTX** context) {
+	EVP_MD_CTX_free(*context);
+	*context = nullptr;
+}
 
 
 OutputFile::OutputFile(const Options& opts, ld::Internal& state) 
@@ -3834,7 +3842,7 @@ void OutputFile::computeContentUUID(ld::Internal& state, uint8_t* wholeBuffer)
 {
 	const bool log = false;
 	if ( (_options.outputKind() != Options::kObjectFile) || state.someObjectFileHasDwarf ) {
-		uint8_t digest[CCSHA256_OUTPUT_SIZE];
+		uint8_t digest[CS_SHA256_LEN];
 		std::vector<std::pair<uint64_t, uint64_t>> excludeRegions;
 		uint64_t bitcodeCmdOffset;
 		uint64_t bitcodeCmdEnd;
@@ -3902,18 +3910,27 @@ void OutputFile::computeContentUUID(ld::Internal& state, uint8_t* wholeBuffer)
 			excludeRegions.emplace_back(std::pair<uint64_t, uint64_t>(symbolTableCmdOffset, symbolTableCmdOffset+symbolTableCmdSize));
 			if ( log ) fprintf(stderr, "linkedit SegCmdOffset=0x%08llX, size=0x%08llX\n", symbolTableCmdOffset, symbolTableCmdSize);
 		}
-		const ccdigest_info* di = ccsha256_di();
-		ccdigest_di_decl(di, ctx);
-		ccdigest_init(di, ctx);
+
+		[[gnu::cleanup(EVP_MD_cleanup)]] EVP_MD* sha256_digest = EVP_MD_fetch(nullptr, "SHA-256", nullptr);
+		[[gnu::cleanup(EVP_MD_CTX_cleanup)]] EVP_MD_CTX* context = EVP_MD_CTX_new();
+
+		if ( !EVP_DigestInit_ex2(context, sha256_digest, nullptr) ) {
+			ERR_print_errors_fp(stderr);
+			abort();
+		}
+
 		// rdar://problem/19487042 include the output leaf file name in the hash
 		const char* lastSlash = strrchr(_options.outputFilePath(), '/');
-		if ( lastSlash !=  NULL ) {
-			ccdigest_update(di, ctx, strlen(lastSlash), lastSlash);
+		if ( lastSlash !=  NULL && !EVP_DigestUpdate(context, lastSlash, strlen(lastSlash)) ) {
+			ERR_print_errors_fp(stderr);
+			abort();
 		}
+
 		// <rdar://problem/38679559> use train name when calculating a binary's UUID
 		const char* buildName = _options.buildContextName();
-		if ( buildName != NULL ) {
-			ccdigest_update(di, ctx, strlen(buildName), buildName);
+		if ( buildName != NULL && !EVP_DigestUpdate(context, buildName, strlen(buildName)) ) {
+			ERR_print_errors_fp(stderr);
+			abort();
 		}
 
 		if ( !excludeRegions.empty() ) {
@@ -3937,22 +3954,47 @@ void OutputFile::computeContentUUID(ld::Internal& state, uint8_t* wholeBuffer)
 			// Measure the ranges we want in parallel
 			struct Digest
 			{
-				uint8_t digest[CCSHA256_OUTPUT_SIZE];
+				uint8_t digest[CS_SHA256_LEN];
 			};
 			__block std::vector<Digest> digests(regionsToMeasure.size());
 			dispatch_apply(regionsToMeasure.size(), DISPATCH_APPLY_AUTO, ^(size_t index) {
 				uint64_t startOffset = regionsToMeasure[index].first;
 				uint64_t size = regionsToMeasure[index].second;
-				CCDigest(kCCDigestSHA256, &wholeBuffer[startOffset], size, digests[index].digest);
+
+				[[gnu::cleanup(EVP_MD_cleanup)]] EVP_MD* sha256_digest = EVP_MD_fetch(nullptr, "SHA-256", nullptr);
+				[[gnu::cleanup(EVP_MD_CTX_cleanup)]] EVP_MD_CTX* context = EVP_MD_CTX_new();
+
+				if (!EVP_DigestInit_ex2(context, sha256_digest, nullptr)) {
+					ERR_print_errors_fp(stderr);
+					abort();
+				}
+				if (!EVP_DigestUpdate(context, &wholeBuffer[startOffset], size)) {
+					ERR_print_errors_fp(stderr);
+					abort();
+				}
+				if (!EVP_DigestFinal_ex(context, digests[index].digest, nullptr)) {
+					ERR_print_errors_fp(stderr);
+					abort();
+				}
 			});
 
 			// Merge the resuls in serial
-			ccdigest_update(di, ctx, digests.size() * sizeof(Digest), digests.data());
+			if ( !EVP_DigestUpdate(context, digests.data(), digests.size() * sizeof(Digest)) ) {
+			   ERR_print_errors_fp(stderr);
+			   abort();
+		    }
 		} else {
-			ccdigest_update(di, ctx, _fileSize, wholeBuffer);
+			if ( !EVP_DigestUpdate(context, wholeBuffer, _fileSize) ) {
+			   ERR_print_errors_fp(stderr);
+			   abort();
+			}
 		}
 
-		ccdigest_final(di, ctx, digest);
+		if ( !EVP_DigestFinal_ex(context, digest, nullptr) ) {
+			ERR_print_errors_fp(stderr);
+			abort();
+		}
+
 		if ( log ) fprintf(stderr, "uuid=%02X, %02X, %02X, %02X, %02X, %02X, %02X, %02X\n", digest[0], digest[1], digest[2],
 							 digest[3], digest[4], digest[5], digest[6],  digest[7]);
 
