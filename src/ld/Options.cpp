@@ -35,7 +35,6 @@
 #include <spawn.h>
 #include <Availability.h>
 #include <tapi/tapi.h>
-#include <mach-o/dyld_priv.h>
 
 #include <algorithm>
 #include <vector>
