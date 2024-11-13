@@ -23,6 +23,7 @@ cxx = meson.get_compiler('cpp')
 libcodedirectory_dep = dependency(
     'libcodedirectory',
     version : '=819.6.1',
+    fallback : [ 'libcodedirectory', 'libcodedirectory_dep' ],
 )
 libtapi_dep = dependency(
     'libtapi',
