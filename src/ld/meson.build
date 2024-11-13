@@ -56,7 +56,6 @@ executable(
         'code-sign-blobs/blob.h',
         'debugline.c',
         'ld.cpp',
-        'libcodedirectory.c',
         'passes/bitcode_bundle.cpp',
         'passes/branch_island.cpp',
         'passes/branch_shim.cpp',
