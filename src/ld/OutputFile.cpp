@@ -57,7 +57,7 @@ extern "C" {
 
 #include <CommonCrypto/CommonDigest.h>
 #include <AvailabilityMacros.h>
-#include <System/machine/cpu_capabilities.h>
+
 
 #include "ExportsTrie.h"
 
@@ -4010,21 +4010,7 @@ void OutputFile::writeOutputFile(ld::Internal& state)
 	}
 
 	// assume mappable by default
-	bool outputIsMappableFile = true;
-
-#if __arm64__
-	// <rdar://problem/66598213> work around VM limitation on Apple Silicon and use write() instead of mmap() to produce output file
-	outputIsMappableFile = false;
-#elif __x86_64__
-#ifndef kIsTranslated
-   #define kIsTranslated  0x4000000000000000ULL
-#endif
-	// <rdar://problem/70505306>
-	bool isTranslated = ((*(uint64_t*)_COMM_PAGE_CPU_CAPABILITIES64) & kIsTranslated);
-	if ( isTranslated ) {
-		outputIsMappableFile = false;
-	}
-#endif
+	bool outputIsMappableFile = false;
 
 	// rdar://107066824 (ld64: provide an environment variable or so to switch to the
 	// allocate+pwrite writing mode (instead of mmap) on Intels)
