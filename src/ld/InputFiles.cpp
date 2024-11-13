@@ -464,15 +464,8 @@ ld::File* InputFiles::makeFile(const Options::FileInfo& info, bool indirectDylib
 			if ( _options.overridePathlibLTO() != NULL ) {
 				libLTO = _options.overridePathlibLTO();
 			}
-			else if ( _NSGetExecutablePath(ldPath, &bufSize) != -1 ) {
-				if ( realpath(ldPath, tmpPath) != NULL ) {
-					char* lastSlash = strrchr(tmpPath, '/');
-					if ( lastSlash != NULL )
-						strcpy(lastSlash, "/../lib/libLTO.dylib");
-					libLTO = tmpPath;
-					if ( realpath(tmpPath, libLTOPath) != NULL ) 
-						libLTO = libLTOPath;
-				}
+			else {
+				libLTO = "@libllvm_path@/lib/libLTO.dylib";
 			}
 			throwf("could not process llvm bitcode object file, because %s could not be loaded", libLTO);
 		}
