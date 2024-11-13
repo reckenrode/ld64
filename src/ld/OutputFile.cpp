@@ -47,7 +47,8 @@
 extern "C" {
     #include <corecrypto/ccsha2.h>
 }
-#include <string>
+
+#include <mutex>
 #include <string>
 #include <list>
 #include <algorithm>
@@ -1321,7 +1322,7 @@ void OutputFile::rangeCheckRISCVBranch20(int64_t displacement, ld::Internal& sta
 
 
 #if SUPPORT_ARCH_arm64e
-static os_lock_unfair_s  sAuthenticatedFixupDataLock = OS_LOCK_UNFAIR_INIT; // to serialize building of _authenticatedFixupData
+static std::mutex sAuthenticatedFixupDataLock; // to serialize building of _authenticatedFixupData
 #endif
 
 void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::Atom* atom, uint8_t* buffer)
@@ -1697,11 +1698,11 @@ void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::
 					}
 					else {
 						auto fixupOffset = (uintptr_t)(fixUpLocation - mhAddress);
-						os_lock_lock(&sAuthenticatedFixupDataLock);
+						sAuthenticatedFixupDataLock.lock();
 							assert(_authenticatedFixupData.find(fixupOffset) == _authenticatedFixupData.end());
 							auto authneticatedData = std::make_pair(authData, accumulator);
 							_authenticatedFixupData[fixupOffset] = authneticatedData;
-						os_lock_unlock(&sAuthenticatedFixupDataLock);
+						sAuthenticatedFixupDataLock.unlock();
 						// Zero out this entry which we will expect later.
 						set64LE(fixUpLocation, 0);
 					}
@@ -1728,11 +1729,11 @@ void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::
 					}
 					else {
 						auto fixupOffset = (uintptr_t)(fixUpLocation - mhAddress);
-						os_lock_lock(&sAuthenticatedFixupDataLock);
+						sAuthenticatedFixupDataLock.lock();
 							assert(_authenticatedFixupData.find(fixupOffset) == _authenticatedFixupData.end());
 							auto authneticatedData = std::make_pair(authData, accumulator);
 							_authenticatedFixupData[fixupOffset] = authneticatedData;
-						os_lock_unlock(&sAuthenticatedFixupDataLock);
+						sAuthenticatedFixupDataLock.unlock();
 						// Zero out this entry which we will expect later.
 						set64LE(fixUpLocation, 0);
 					}
