@@ -31,14 +31,14 @@
 #include <set>
 #include <string_view>
 
-#define USE_LLVM_CONTAINERS 1
+#define USE_LLVM_CONTAINERS 0
 
 #if USE_LLVM_CONTAINERS
 #include "../llvm/llvm-DenseSet.h"
 #include "../llvm/llvm-DenseMap.h"
 #else
 // Include DenseMapInfo helpers even when not using LLVM containers.
-#include "../llvm/llvm-DenseMapInfo.h"
+// #include "../llvm/llvm-DenseMapInfo.h"
 #endif
 
 namespace ld {
