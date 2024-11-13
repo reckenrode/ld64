@@ -1,0 +1,6 @@
+.DS_Store
+.idea
+
+# Nix build artifacts
+outputs
+result
