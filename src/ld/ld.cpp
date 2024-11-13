@@ -47,9 +47,8 @@ extern "C" double log2 ( double );
 #include <mach-o/dyld.h>
 #include <dlfcn.h>
 #include <AvailabilityMacros.h>
-#include <os/lock_private.h>
 
-#include <string>
+#include <mutex>
 #include <map>
 #include <set>
 #include <string>
@@ -1539,8 +1538,8 @@ int main(int argc, const char* argv[])
 								statistics.vmEnd.faults-statistics.vmStart.faults);
 			fprintf(stderr, "memory active: %lu, wired: %lu\n", statistics.vmEnd.active_count * vm_page_size, statistics.vmEnd.wire_count * vm_page_size);
 			char temp[40];
-			fprintf(stderr, "processed %3u object files,  totaling %15s bytes\n", inputFiles._totalObjectLoaded, commatize(inputFiles._totalObjectSize, temp));
-			fprintf(stderr, "processed %3u archive files, totaling %15s bytes\n", inputFiles._totalArchivesLoaded, commatize(inputFiles._totalArchiveSize, temp));
+			fprintf(stderr, "processed %3u object files,  totaling %15s bytes\n", inputFiles._totalObjectLoaded.load(), commatize(inputFiles._totalObjectSize.load(), temp));
+			fprintf(stderr, "processed %3u archive files, totaling %15s bytes\n", inputFiles._totalArchivesLoaded.load(), commatize(inputFiles._totalArchiveSize.load(), temp));
 			fprintf(stderr, "processed %3u dylib files\n", inputFiles._totalDylibsLoaded);
 			fprintf(stderr, "wrote output file            totaling %15s bytes\n", commatize(out.fileSize(), temp));
 		}
@@ -1570,12 +1569,12 @@ int main(int argc, const char* argv[])
 #ifndef NDEBUG
 
 //  now that the linker is multi-threaded, only allow one assert() to be processed 
-static os_lock_unfair_s  sAssertLock = OS_LOCK_UNFAIR_INIT;
+static std::mutex sAssertLock;
 
 // implement assert() function to print out a backtrace before aborting
 void __assert_rtn(const char* func, const char* file, int line, const char* failedexpr)
 {
-	os_lock_lock(&sAssertLock);
+	sAssertLock.lock();
 
     Snapshot *snapshot = Snapshot::globalSnapshot;
     

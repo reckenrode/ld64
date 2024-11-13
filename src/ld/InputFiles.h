@@ -46,6 +46,7 @@
 #include <pthread.h>
 #endif
 
+#include <atomic>
 #include <vector>
 
 #include "Options.h"
@@ -78,10 +79,10 @@ public:
 	size_t						count() const { return _inputFiles.size(); }
 
 	// for -print_statistics
-	volatile int64_t			_totalObjectSize;
-	volatile int64_t			_totalArchiveSize;
-	volatile int32_t			_totalObjectLoaded;
-	volatile int32_t			_totalArchivesLoaded;
+	std::atomic<int64_t>		_totalObjectSize;
+	std::atomic<int64_t>		_totalArchiveSize;
+	std::atomic<int32_t>		_totalObjectLoaded;
+	std::atomic<int32_t>		_totalArchivesLoaded;
 	         int32_t			_totalDylibsLoaded;
 	
 	

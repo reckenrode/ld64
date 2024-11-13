@@ -42,12 +42,11 @@
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
 #include <sys/sysctl.h>
-#include <libkern/OSAtomic.h>
 #if HAVE_LIBDISPATCH
 #include <dispatch/dispatch.h>
 #endif
 
-#include <string>
+#include <atomic>
 #include <map>
 #include <set>
 #include <string>
@@ -387,16 +386,16 @@ ld::File* InputFiles::makeFile(const Options::FileInfo& info, bool indirectDylib
 
 	ld::relocatable::File* objResult = mach_o::relocatable::parse(p, len, info.path, info.modTime, info.ordinal, objOpts);
 	if ( objResult != NULL ) {
-		OSAtomicAdd64(len, &_totalObjectSize);
-		OSAtomicIncrement32(&_totalObjectLoaded);
+		_totalObjectSize += len;
+		++_totalObjectLoaded;
 		return objResult;
 	}
 
 	// see if it is an llvm object file
 	objResult = lto::parse(p, len, info.path, info.modTime, info.ordinal, _options.architecture(), _options.subArchitecture(), _options.logAllFiles(), _options.verboseOptimizationHints());
 	if ( objResult != NULL ) {
-		OSAtomicAdd64(len, &_totalObjectSize);
-		OSAtomicIncrement32(&_totalObjectLoaded);
+		_totalObjectSize += len;
+		++_totalObjectLoaded;
 		return objResult;
 	}
 
@@ -444,8 +443,8 @@ ld::File* InputFiles::makeFile(const Options::FileInfo& info, bool indirectDylib
 	ld::archive::File* archiveResult = ::archive::parse(p, len, info.path, info.modTime, info.ordinal, archOpts);
 	if ( archiveResult != NULL ) {
 	
-		OSAtomicAdd64(len, &_totalArchiveSize);
-		OSAtomicIncrement32(&_totalArchivesLoaded);
+		_totalArchiveSize += len;
+		++_totalArchivesLoaded;
 		return archiveResult;
 	}
 	
