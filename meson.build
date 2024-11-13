@@ -27,6 +27,7 @@ libcodedirectory_dep = dependency(
 libtapi_dep = dependency(
     'libtapi',
     version : [ '>=1500' , '<1600' ],
+    fallback : [ 'libtapi', 'libtapi_dep' ],
 )
 llvm_dep = dependency(
     'llvm',
