@@ -847,8 +847,8 @@ public:
 	uint32_t		cmdsize() const								INLINE { return E::get32(fields.cmdsize); }
 	void			set_cmdsize(uint32_t value)					INLINE { E::set32(fields.cmdsize, value); }
 
-	uint32_t		name_offset() const							INLINE { return E::get32(fields.dylib.name.offset); }
-	void			set_name_offset(uint32_t value)				INLINE { E::set32(fields.dylib.name.offset, value);  }
+	uint32_t		name_offset() const							INLINE { return E::get32(fields.dylib.name); }
+	void			set_name_offset(uint32_t value)				INLINE { E::set32(fields.dylib.name, value);  }
 	
 	uint32_t		timestamp() const							INLINE { return E::get32(fields.dylib.timestamp); }
 	void			set_timestamp(uint32_t value)				INLINE { E::set32(fields.dylib.timestamp, value); }
@@ -880,8 +880,8 @@ public:
 	uint32_t		cmdsize() const						INLINE { return E::get32(fields.cmdsize); }
 	void			set_cmdsize(uint32_t value)			INLINE { E::set32(fields.cmdsize, value); }
 
-	uint32_t		name_offset() const					INLINE { return E::get32(fields.name.offset); }
-	void			set_name_offset(uint32_t value)		INLINE { E::set32(fields.name.offset, value);  }
+	uint32_t		name_offset() const					INLINE { return E::get32(fields.name); }
+	void			set_name_offset(uint32_t value)		INLINE { E::set32(fields.name, value);  }
 	
 	const char*		name() const						INLINE { return (const char*)&fields + name_offset(); }
 	void			set_name_offset()					INLINE { set_name_offset(sizeof(fields)); }
@@ -904,8 +904,8 @@ public:
 	uint32_t		cmdsize() const						INLINE { return E::get32(fields.cmdsize); }
 	void			set_cmdsize(uint32_t value)			INLINE { E::set32(fields.cmdsize, value); }
 
-	uint32_t		umbrella_offset() const				INLINE { return E::get32(fields.umbrella.offset); }
-	void			set_umbrella_offset(uint32_t value)	INLINE { E::set32(fields.umbrella.offset, value);  }
+	uint32_t		umbrella_offset() const				INLINE { return E::get32(fields.umbrella); }
+	void			set_umbrella_offset(uint32_t value)	INLINE { E::set32(fields.umbrella, value);  }
 	
 	const char*		umbrella() const					INLINE { return (const char*)&fields + umbrella_offset(); }
 	void			set_umbrella_offset()				INLINE { set_umbrella_offset(sizeof(fields)); }
@@ -928,8 +928,8 @@ public:
 	uint32_t		cmdsize() const						INLINE { return E::get32(fields.cmdsize); }
 	void			set_cmdsize(uint32_t value)			INLINE { E::set32(fields.cmdsize, value); }
 
-	uint32_t		client_offset() const				INLINE { return E::get32(fields.client.offset); }
-	void			set_client_offset(uint32_t value)	INLINE { E::set32(fields.client.offset, value);  }
+	uint32_t		client_offset() const				INLINE { return E::get32(fields.client); }
+	void			set_client_offset(uint32_t value)	INLINE { E::set32(fields.client, value);  }
 	
 	const char*		client() const						INLINE { return (const char*)&fields + client_offset(); }
 	void			set_client_offset()					INLINE { set_client_offset(sizeof(fields)); }
@@ -952,8 +952,8 @@ public:
 	uint32_t		cmdsize() const							INLINE { return E::get32(fields.cmdsize); }
 	void			set_cmdsize(uint32_t value)				INLINE { E::set32(fields.cmdsize, value); }
 
-	uint32_t		sub_umbrella_offset() const				INLINE { return E::get32(fields.sub_umbrella.offset); }
-	void			set_sub_umbrella_offset(uint32_t value)	INLINE { E::set32(fields.sub_umbrella.offset, value);  }
+	uint32_t		sub_umbrella_offset() const				INLINE { return E::get32(fields.sub_umbrella); }
+	void			set_sub_umbrella_offset(uint32_t value)	INLINE { E::set32(fields.sub_umbrella, value);  }
 	
 	const char*		sub_umbrella() const					INLINE { return (const char*)&fields + sub_umbrella_offset(); }
 	void			set_sub_umbrella_offset()				INLINE { set_sub_umbrella_offset(sizeof(fields)); }
@@ -976,8 +976,8 @@ public:
 	uint32_t		cmdsize() const							INLINE { return E::get32(fields.cmdsize); }
 	void			set_cmdsize(uint32_t value)				INLINE { E::set32(fields.cmdsize, value); }
 
-	uint32_t		sub_library_offset() const				INLINE { return E::get32(fields.sub_library.offset); }
-	void			set_sub_library_offset(uint32_t value)	INLINE { E::set32(fields.sub_library.offset, value);  }
+	uint32_t		sub_library_offset() const				INLINE { return E::get32(fields.sub_library); }
+	void			set_sub_library_offset(uint32_t value)	INLINE { E::set32(fields.sub_library, value);  }
 	
 	const char*		sub_library() const						INLINE { return (const char*)&fields + sub_library_offset(); }
 	void			set_sub_library_offset()				INLINE { set_sub_library_offset(sizeof(fields)); }
@@ -1355,8 +1355,8 @@ public:
 	uint32_t		cmdsize() const					INLINE { return E::get32(fields.cmdsize); }
 	void			set_cmdsize(uint32_t value)		INLINE { E::set32(fields.cmdsize, value); }
 
-	uint32_t		path_offset() const				INLINE { return E::get32(fields.path.offset); }
-	void			set_path_offset(uint32_t value)	INLINE { E::set32(fields.path.offset, value);  }
+	uint32_t		path_offset() const				INLINE { return E::get32(fields.path); }
+	void			set_path_offset(uint32_t value)	INLINE { E::set32(fields.path, value);  }
 	
 	const char*		path() const					INLINE { return (const char*)&fields + path_offset(); }
 	void			set_path_offset()				INLINE { set_path_offset(sizeof(fields)); }
@@ -1381,8 +1381,8 @@ template <> struct macho_nlist_content<Pointer64<LittleEndian> > { struct nlist_
 template <typename P>
 class macho_nlist {
 public:
-	uint32_t		n_strx() const					INLINE { return E::get32(entry.fields.n_un.n_strx); }
-	void			set_n_strx(uint32_t value)		INLINE { E::set32((uint32_t&)entry.fields.n_un.n_strx, value); }
+	uint32_t		n_strx() const					INLINE { return E::get32(entry.fields.n_strx); }
+	void			set_n_strx(uint32_t value)		INLINE { E::set32((uint32_t&)entry.fields.n_strx, value); }
 
 	uint8_t			n_type() const					INLINE { return entry.fields.n_type; }
 	void			set_n_type(uint8_t value)		INLINE { entry.fields.n_type = value; }
