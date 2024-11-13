@@ -35,7 +35,6 @@
 #include <dlfcn.h>
 #include <mach-o/loader.h>
 #include <mach-o/getsect.h>
-#include <mach-o/dyld_priv.h>
 #include <Availability.h>
 
 #include "FileAbstraction.hpp"
@@ -73,7 +72,16 @@ bool _dyld_find_unwind_sections(void* addr, dyld_unwind_sections* info)
 }
 #endif // 0
 
+struct dyld_unwind_sections
+{
+	const struct mach_header*		mh;
+	const void*						dwarf_section;
+	uintptr_t						dwarf_section_length;
+	const void*						compact_unwind_section;
+	uintptr_t						compact_unwind_section_length;
+};
 
+extern "C" bool _dyld_find_unwind_sections(void*, dyld_unwind_sections*);
 
 namespace libunwind {
 
@@ -101,7 +109,7 @@ public:
 		uintptr_t		getP(pint_t addr);
 	static uint64_t		getULEB128(pint_t& addr, pint_t end);
 	static int64_t		getSLEB128(pint_t& addr, pint_t end);
-	
+
 		pint_t			getEncodedP(pint_t& addr, pint_t end, uint8_t encoding);
 		bool			findFunctionName(pint_t addr, char* buf, size_t bufLen, unw_word_t* offset);
 		bool			findUnwindSections(pint_t addr, pint_t& mh, pint_t& dwarfStart, pint_t& dwarfLen, pint_t& compactStart);
