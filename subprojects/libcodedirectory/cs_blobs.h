@@ -129,6 +129,7 @@ enum {
 	CS_SHA1_LEN = 20,
 	CS_SHA256_LEN = 32,
 	CS_SHA256_TRUNCATED_LEN = 20,
+	CS_SHA384_LEN = 48,
 
 	CS_CDHASH_LEN = 20,                                             /* always - larger hashes are truncated */
 	CS_HASH_MAX_SIZE = 48, /* max size of the hash we'll support */

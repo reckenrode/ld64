@@ -14,10 +14,6 @@
 #include <sys/mman.h>
 #include <sys/queue.h>
 
-#include <corecrypto/ccdigest.h>
-#include <corecrypto/ccsha1.h>
-#include <corecrypto/ccsha2.h>
-
 #define LIBCD_HAS_PLATFORM_VERSION 1
 #include "libcodedirectory.h"
 
@@ -45,6 +41,21 @@
 #include <err.h>
 #include <sysexits.h>
 #endif
+
+#include <openssl/err.h>
+#include <openssl/evp.h>
+
+static void
+EVP_MD_cleanup(EVP_MD** digest) {
+    EVP_MD_free(*digest);
+    *digest = NULL;
+}
+
+static void
+EVP_MD_CTX_cleanup(EVP_MD_CTX** context) {
+    EVP_MD_CTX_free(*context);
+    *context = NULL;
+}
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -459,17 +470,17 @@ void libcd_set_exec_seg (libcd *s, uint64_t base, uint64_t limit, uint64_t flags
 
 struct _hash_info {
     size_t hash_len;
-    const struct ccdigest_info *(*di)(void);
+    const char* name;
 };
 
 static const struct _hash_info _known_hash_types[] = {
     { 0, NULL },
-    { CS_SHA1_LEN, ccsha1_di }, // CS_HASHTYPE_SHA1
-    { CS_SHA256_LEN, ccsha256_di }, // CS_HASHTYPE_SHA256
-    // { 0, NULL }, // CS_HASHTYPE_SHA256_TRUNCATED, unsupported
-    // { 0, NULL }, // CS_HASHTYPE_SHA384, unsupported
+    { CS_SHA1_LEN, "SHA-1" }, // CS_HASHTYPE_SHA1
+    { CS_SHA256_LEN, "SHA-256" }, // CS_HASHTYPE_SHA256
+    { CS_HASHTYPE_SHA256_TRUNCATED, "SHA-256" }, // CS_HASHTYPE_SHA256_TRUNCATED
+    { CS_SHA384_LEN, "SHA-384" }, // CS_HASHTYPE_SHA384
 };
-static const size_t _max_known_hash_len = CS_SHA256_LEN;
+static const size_t _max_known_hash_len = CS_SHA384_LEN;
 static const int _known_hash_types_count = sizeof(_known_hash_types)/sizeof(_known_hash_types[0]);
 
 static struct _hash_info const *
@@ -781,8 +792,8 @@ _libcd_hash_page(libcd *s,
     uint8_t page_hash[_max_known_hash_len] = {0};
     const unsigned int page_no = (unsigned int)page_idx;
 
-    struct ccdigest_info const *di = hi->di();
-    ccdigest_di_decl(di, ctx);
+    [[gnu::cleanup(EVP_MD_cleanup)]] EVP_MD* digest = EVP_MD_fetch(NULL, hi->name, NULL);
+    [[gnu::cleanup(EVP_MD_CTX_cleanup)]] EVP_MD_CTX* context = EVP_MD_CTX_new();
 
     const size_t pos = page_idx * _cs_page_bytes;
     uint8_t page[_cs_page_bytes] = {0};
@@ -794,9 +805,18 @@ _libcd_hash_page(libcd *s,
         return LIBCD_SERIALIZE_READ_PAGE_ERROR;
     }
 
-    ccdigest_init(di, ctx);
-    ccdigest_update(di, ctx, read_bytes, page);
-    ccdigest_final(di, ctx, page_hash);
+    if (!EVP_DigestInit_ex2(context, digest, NULL)) {
+        ERR_print_errors_fp(stderr);
+        abort();
+    }
+    if (!EVP_DigestUpdate(context, page, read_bytes)) {
+        ERR_print_errors_fp(stderr);
+        abort();
+    }
+    if (!EVP_DigestFinal_ex(context, page_hash, NULL)) {
+        ERR_print_errors_fp(stderr);
+        abort();
+    }
 
     memcpy(hash_destination, page_hash, hi->hash_len);
 
@@ -894,16 +914,25 @@ _libcd_serialize_cd (libcd *s, uint32_t hash_type)
     //// code directory hashes
     {
         if (s->special_slot_count > 0) {
-            struct ccdigest_info const *di = hi->di();
-            ccdigest_di_decl(di, ctx);
+            [[gnu::cleanup(EVP_MD_cleanup)]] EVP_MD* digest = EVP_MD_fetch(NULL, hi->name, NULL);
+            [[gnu::cleanup(EVP_MD_CTX_cleanup)]] EVP_MD_CTX* context = EVP_MD_CTX_new();
 
             uint8_t *special_slot_buf = calloc(s->special_slot_count, hi->hash_len);
 
             struct _sslot_data *sslot = NULL;
             SLIST_FOREACH(sslot, &s->sslot_data, entries) {
-                ccdigest_init(di, ctx);
-                ccdigest_update(di, ctx, sslot->len, sslot->data);
-                ccdigest_final(di, ctx, special_slot_buf + (s->special_slot_count-sslot->slot)*hi->hash_len);
+                if (!EVP_DigestInit_ex2(context, digest, NULL)) {
+                    ERR_print_errors_fp(stderr);
+                    abort();
+                }
+                if (!EVP_DigestUpdate(context, sslot->data, sslot->len)) {
+                    ERR_print_errors_fp(stderr);
+                    abort();
+                }
+                if (!EVP_DigestFinal_ex(context, special_slot_buf + (s->special_slot_count-sslot->slot)*hi->hash_len, NULL)) {
+                    ERR_print_errors_fp(stderr);
+                    abort();
+                }
             }
             memcpy(cursor, special_slot_buf, s->special_slot_count*hi->hash_len);
             cursor += s->special_slot_count*hi->hash_len;
@@ -949,17 +978,28 @@ _libcd_serialize_cd (libcd *s, uint32_t hash_type)
 
     //Record the cdhash for this codedirectory
     {
-        struct ccdigest_info const *di = hi->di();
-        ccdigest_di_decl(di, ctx);
+        [[gnu::cleanup(EVP_MD_cleanup)]] EVP_MD* digest = EVP_MD_fetch(NULL, hi->name, NULL);
+        [[gnu::cleanup(EVP_MD_CTX_cleanup)]] EVP_MD_CTX* context = EVP_MD_CTX_new();
+
         uint8_t *cdhash_buf = calloc(1, hi->hash_len);
         if (cdhash_buf == NULL) {
             _libcd_err("Failed to allocated memory for cdhash");
             free(cd_mem);
             return LIBCD_SERIALIZE_NO_MEM;
         }
-        ccdigest_init(di, ctx);
-        ccdigest_update(di, ctx, cd_size, cd_mem);
-        ccdigest_final(di, ctx, cdhash_buf);
+
+        if (!EVP_DigestInit_ex2(context, digest, NULL)) {
+            ERR_print_errors_fp(stderr);
+            abort();
+        }
+        if (!EVP_DigestUpdate(context, cd_mem, cd_size)) {
+            ERR_print_errors_fp(stderr);
+            abort();
+        }
+        if (!EVP_DigestFinal_ex(context, cdhash_buf, NULL)) {
+            ERR_print_errors_fp(stderr);
+            abort();
+        }
 
         for (size_t i = 0; i < s->hash_types_count; i++) {
             if (s->cdhashes[i].set) {
