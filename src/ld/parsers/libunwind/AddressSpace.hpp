@@ -35,7 +35,6 @@
 #include <dlfcn.h>
 #include <mach-o/loader.h>
 #include <mach-o/getsect.h>
-#include <mach-o/dyld_priv.h>
 #include <Availability.h>
 
 #include "FileAbstraction.hpp"
@@ -73,7 +72,16 @@ bool _dyld_find_unwind_sections(void* addr, dyld_unwind_sections* info)
 }
 #endif // 0
 
+struct dyld_unwind_sections
+{
+	const struct mach_header*		mh;
+	const void*						dwarf_section;
+	uintptr_t						dwarf_section_length;
+	const void*						compact_unwind_section;
+	uintptr_t						compact_unwind_section_length;
+};
 
+extern "C" bool _dyld_find_unwind_sections(void*, dyld_unwind_sections*);
 
 namespace libunwind {
 
