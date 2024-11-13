@@ -1,5 +1,16 @@
 subdir('parsers')
 
+InputFiles_cpp = configure_file(
+    configuration : {
+        'libllvm_path' : get_option('libllvm_path'),
+        # Silence warnings
+        'APPLE_LICENSE_HEADER_START' : '@APPLE_LICENSE_HEADER_START@',
+        'APPLE_LICENSE_HEADER_END' : '@APPLE_LICENSE_HEADER_END@',
+    },
+    input : 'InputFiles.cpp',
+    output : '@PLAINNAME@',
+)
+
 executable(
     'ld',
     cpp_args : [
@@ -31,8 +42,8 @@ executable(
     ],
     sources : [
         configure_h,
+        InputFiles_cpp,
         'FatFile.cpp',
-        'InputFiles.cpp',
         'Mangling.cpp',
         'Options.cpp',
         'OutputFile.cpp',
