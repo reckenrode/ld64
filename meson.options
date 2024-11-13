@@ -1,0 +1,5 @@
+option(
+    'libllvm_path',
+    type : 'string',
+    description: 'Specifies the default path to LLVM for `libLTO.dylib`'
+)
