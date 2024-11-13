@@ -1,0 +1,200 @@
+// SPDX-License-Identifier: APSL-2.0
+
+// Derive `machine.h` from LLVM to avoid macro conflicts.
+
+#pragma once
+
+#include_next <mach/machine.h>
+
+#undef CPU_ARCH_MASK
+
+#undef CPU_ARCH_ABI64_32
+#undef CPU_ARCH_ABI64
+
+#undef CPU_TYPE_ANY
+
+#undef CPU_TYPE_ARM
+#undef CPU_TYPE_ARM64
+#undef CPU_TYPE_ARM64_32
+#undef CPU_TYPE_I386
+#undef CPU_TYPE_X86
+#undef CPU_TYPE_X86_64
+#undef CPU_TYPE_MC98000
+#undef CPU_TYPE_SPARC
+#undef CPU_TYPE_POWERPC
+#undef CPU_TYPE_POWERPC64
+
+#undef CPU_SUBTYPE_MASK
+
+#undef CPU_SUBTYPE_ARM64E
+#undef CPU_SUBTYPE_ARM64_32_V8
+#undef CPU_SUBTYPE_ARM64_ALL
+#undef CPU_SUBTYPE_ARM64_V8
+#undef CPU_SUBTYPE_ARM_ALL
+#undef CPU_SUBTYPE_ARM_XSCALE
+#undef CPU_SUBTYPE_ARM_V4T
+#undef CPU_SUBTYPE_ARM_V5TEJ
+#undef CPU_SUBTYPE_ARM_V6
+#undef CPU_SUBTYPE_ARM_V6M
+#undef CPU_SUBTYPE_ARM_V7
+#undef CPU_SUBTYPE_ARM_V7EM
+#undef CPU_SUBTYPE_ARM_V7F
+#undef CPU_SUBTYPE_ARM_V7K
+#undef CPU_SUBTYPE_ARM_V7M
+#undef CPU_SUBTYPE_ARM_V7S
+#undef CPU_SUBTYPE_ARM_V8
+
+#undef CPU_SUBTYPE_I386_ALL
+#undef CPU_SUBTYPE_386
+#undef CPU_SUBTYPE_486
+#undef CPU_SUBTYPE_486SX
+#undef CPU_SUBTYPE_586
+#undef CPU_SUBTYPE_PENT
+#undef CPU_SUBTYPE_PENTPRO
+#undef CPU_SUBTYPE_PENTII_M3
+#undef CPU_SUBTYPE_PENTII_M5
+#undef CPU_SUBTYPE_CELERON
+#undef CPU_SUBTYPE_CELERON_MOBILE
+#undef CPU_SUBTYPE_PENTIUM_3
+#undef CPU_SUBTYPE_PENTIUM_3_M
+#undef CPU_SUBTYPE_PENTIUM_3_XEON
+#undef CPU_SUBTYPE_PENTIUM_M
+#undef CPU_SUBTYPE_PENTIUM_4
+#undef CPU_SUBTYPE_PENTIUM_4_M
+#undef CPU_SUBTYPE_ITANIUM
+#undef CPU_SUBTYPE_ITANIUM_2
+#undef CPU_SUBTYPE_XEON
+#undef CPU_SUBTYPE_XEON_MP
+
+#undef CPU_SUBTYPE_X86_ALL
+#undef CPU_SUBTYPE_X86_ARCH1
+
+#undef CPU_SUBTYPE_X86_64_ALL
+#undef CPU_SUBTYPE_X86_64_H
+
+#undef CPU_SUBTYPE_INTEL
+#undef CPU_SUBTYPE_INTEL_FAMILY
+#undef CPU_SUBTYPE_INTEL_FAMILY_MAX
+#undef CPU_SUBTYPE_INTEL_MODEL
+#undef CPU_SUBTYPE_INTEL_MODEL_ALL
+
+#undef CPU_SUBTYPE_POWERPC_ALL
+#undef CPU_SUBTYPE_POWERPC_601
+#undef CPU_SUBTYPE_POWERPC_602
+#undef CPU_SUBTYPE_POWERPC_603
+#undef CPU_SUBTYPE_POWERPC_603e
+#undef CPU_SUBTYPE_POWERPC_603ev
+#undef CPU_SUBTYPE_POWERPC_604
+#undef CPU_SUBTYPE_POWERPC_604e
+#undef CPU_SUBTYPE_POWERPC_620
+#undef CPU_SUBTYPE_POWERPC_750
+#undef CPU_SUBTYPE_POWERPC_7400
+#undef CPU_SUBTYPE_POWERPC_7450
+#undef CPU_SUBTYPE_POWERPC_970
+
+#undef CPU_SUBTYPE_MC98601
+
+#undef CPU_SUBTYPE_SPARC_ALL
+
+#undef CPU_SUBTYPE_LIB64
+#undef CPU_SUBTYPE_MULTIPLE
+
+#include <llvm/BinaryFormat/MachO.h>
+
+using llvm::MachO::CPU_ARCH_MASK;
+
+using llvm::MachO::CPU_ARCH_ABI64_32;
+using llvm::MachO::CPU_ARCH_ABI64;
+
+using llvm::MachO::CPU_TYPE_ANY;
+
+using llvm::MachO::CPU_TYPE_ARM;
+using llvm::MachO::CPU_TYPE_ARM64;
+using llvm::MachO::CPU_TYPE_ARM64_32;
+using llvm::MachO::CPU_TYPE_I386;
+using llvm::MachO::CPU_TYPE_X86;
+using llvm::MachO::CPU_TYPE_X86_64;
+using llvm::MachO::CPU_TYPE_MC98000;
+using llvm::MachO::CPU_TYPE_SPARC;
+using llvm::MachO::CPU_TYPE_POWERPC;
+using llvm::MachO::CPU_TYPE_POWERPC64;
+
+using llvm::MachO::CPU_SUBTYPE_MASK;
+
+using llvm::MachO::CPU_SUBTYPE_ARM64E;
+using llvm::MachO::CPU_SUBTYPE_ARM64_32_V8;
+using llvm::MachO::CPU_SUBTYPE_ARM64_ALL;
+using llvm::MachO::CPU_SUBTYPE_ARM64_V8;
+using llvm::MachO::CPU_SUBTYPE_ARM_ALL;
+using llvm::MachO::CPU_SUBTYPE_ARM_XSCALE;
+using llvm::MachO::CPU_SUBTYPE_ARM_V4T;
+using llvm::MachO::CPU_SUBTYPE_ARM_V5TEJ;
+using llvm::MachO::CPU_SUBTYPE_ARM_V6;
+using llvm::MachO::CPU_SUBTYPE_ARM_V6M;
+using llvm::MachO::CPU_SUBTYPE_ARM_V7;
+using llvm::MachO::CPU_SUBTYPE_ARM_V7EM;
+using llvm::MachO::CPU_SUBTYPE_ARM_V7K;
+using llvm::MachO::CPU_SUBTYPE_ARM_V7M;
+using llvm::MachO::CPU_SUBTYPE_ARM_V7S;
+
+using llvm::MachO::CPU_SUBTYPE_I386_ALL;
+using llvm::MachO::CPU_SUBTYPE_386;
+using llvm::MachO::CPU_SUBTYPE_486;
+using llvm::MachO::CPU_SUBTYPE_486SX;
+using llvm::MachO::CPU_SUBTYPE_586;
+using llvm::MachO::CPU_SUBTYPE_PENT;
+using llvm::MachO::CPU_SUBTYPE_PENTPRO;
+using llvm::MachO::CPU_SUBTYPE_PENTII_M3;
+using llvm::MachO::CPU_SUBTYPE_PENTII_M5;
+using llvm::MachO::CPU_SUBTYPE_CELERON;
+using llvm::MachO::CPU_SUBTYPE_CELERON_MOBILE;
+using llvm::MachO::CPU_SUBTYPE_PENTIUM_3;
+using llvm::MachO::CPU_SUBTYPE_PENTIUM_3_M;
+using llvm::MachO::CPU_SUBTYPE_PENTIUM_3_XEON;
+using llvm::MachO::CPU_SUBTYPE_PENTIUM_M;
+using llvm::MachO::CPU_SUBTYPE_PENTIUM_4;
+using llvm::MachO::CPU_SUBTYPE_PENTIUM_4_M;
+using llvm::MachO::CPU_SUBTYPE_ITANIUM;
+using llvm::MachO::CPU_SUBTYPE_ITANIUM_2;
+using llvm::MachO::CPU_SUBTYPE_XEON;
+using llvm::MachO::CPU_SUBTYPE_XEON_MP;
+
+using llvm::MachO::CPU_SUBTYPE_X86_ALL;
+using llvm::MachO::CPU_SUBTYPE_X86_ARCH1;
+
+using llvm::MachO::CPU_SUBTYPE_X86_64_ALL;
+using llvm::MachO::CPU_SUBTYPE_X86_64_H;
+
+using llvm::MachO::CPU_SUBTYPE_INTEL;
+using llvm::MachO::CPU_SUBTYPE_INTEL_FAMILY;
+using llvm::MachO::CPU_SUBTYPE_INTEL_FAMILY_MAX;
+using llvm::MachO::CPU_SUBTYPE_INTEL_MODEL;
+using llvm::MachO::CPU_SUBTYPE_INTEL_MODEL_ALL;
+
+using llvm::MachO::CPU_SUBTYPE_POWERPC_ALL;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_601;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_602;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_603;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_603e;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_603ev;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_604;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_604e;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_620;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_750;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_7400;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_7450;
+using llvm::MachO::CPU_SUBTYPE_POWERPC_970;
+
+using llvm::MachO::CPU_SUBTYPE_MC98601;
+
+using llvm::MachO::CPU_SUBTYPE_SPARC_ALL;
+
+using llvm::MachO::CPU_SUBTYPE_LIB64;
+using llvm::MachO::CPU_SUBTYPE_MULTIPLE;
+
+// These definitions aren’t in the LLVM headers.
+#define CPU_TYPE_RISCV32 24
+
+#define CPU_SUBTYPE_ARM_V7F 10
+#define CPU_SUBTYPE_ARM_V8 CPU_SUBTYPE_ARM64_V8
+#define CPU_SUBTYPE_RISCV32_ALL 0
