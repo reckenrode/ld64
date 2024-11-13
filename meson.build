@@ -39,4 +39,5 @@ openssl_dep = dependency(
 xar_dep = cc.find_library('xar')
 
 
+subdir('include')
 subdir('src')
