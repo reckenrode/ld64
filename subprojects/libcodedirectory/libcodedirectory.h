@@ -116,6 +116,15 @@ enum libcd_set_linkage_ret {
 
 enum libcd_set_linkage_ret libcd_set_linkage(libcd *s, int linkage_hash_type, uint8_t *linkage_hash);
 
+enum libcd_signature_query_ret {
+    LIBCD_SIGNATURE_QUERY_SUCCESS,
+    LIBCD_SIGNATURE_QUERY_INVALID_ARGUMENT,
+    LIBCD_SIGNATURE_QUERY_NOT_A_SIGNATURE,
+};
+
+enum libcd_signature_query_ret libcd_is_blob_a_linker_signature(const uint8_t* data, size_t size, int* linker_signed);
+
+
 __END_DECLS
 
 #endif // H_LIBCODEDIRECTORY
