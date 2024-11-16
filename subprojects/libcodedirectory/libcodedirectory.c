@@ -1221,3 +1221,71 @@ libcd_get_cdhash_for_type(libcd *s, int hash_type, uint8_t* cdhash_buf, size_t c
     }
     return LIBCD_CDHASH_TYPE_NOT_FOUND;
 }
+
+// References:
+// - https://forums.developer.apple.com/forums/thread/702351
+// - https://redmaple.tech/blogs/macho-files/#codedirectory-blob
+
+static inline uint32_t read32be(const uint8_t* data)
+{
+    return (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];
+}
+
+static inline bool is_embedded_signature(uint32_t magic) {
+    switch (magic) {
+    case CSMAGIC_EMBEDDED_SIGNATURE:
+    case CSMAGIC_EMBEDDED_SIGNATURE_OLD:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static inline const uint8_t* find_code_directory(const uint8_t* data, size_t size) {
+    const uint8_t* index_ptr = data + offsetof(CS_SuperBlob, index);
+
+    // There also needs to be space for the actual blobs, but there must be at least enough space
+    // for the blob indexes. If there’s not, then something’s wrong, and the blob is invalid.
+    uint32_t count = read32be(data + offsetof(CS_SuperBlob, count));
+    if (count > ((data + size) - index_ptr) / sizeof(CS_BlobIndex)) {
+        return NULL;
+    }
+
+    for (uint32_t n = 0; n < count; ++n) {
+        const uint8_t* current_index_ptr = index_ptr + n * sizeof(CS_BlobIndex);
+        uint32_t type = read32be(current_index_ptr + offsetof(CS_BlobIndex, type));
+        if (type == CSSLOT_CODEDIRECTORY) {
+            uint32_t offset = read32be(current_index_ptr + offsetof(CS_BlobIndex, offset));
+            if (offset > size - sizeof(CS_CodeDirectory)) {
+                return NULL;
+            } else {
+                return data + offset;
+            }
+        }
+    }
+    return NULL;
+}
+
+enum libcd_signature_query_ret
+libcd_is_blob_a_linker_signature(const uint8_t* data, size_t size, int* linker_signed)
+{
+    if (size < sizeof(CS_SuperBlob) + sizeof(CS_BlobIndex) + sizeof(CS_CodeDirectory)) {
+        return LIBCD_SIGNATURE_QUERY_INVALID_ARGUMENT;
+    }
+
+    if (!is_embedded_signature(read32be(data + offsetof(CS_SuperBlob, magic)))) {
+        return LIBCD_SIGNATURE_QUERY_NOT_A_SIGNATURE;
+    }
+
+    const uint8_t* cd = find_code_directory(data, size);
+    if (!cd) {
+        return LIBCD_SIGNATURE_QUERY_INVALID_ARGUMENT;
+    }
+
+    uint32_t flags = read32be(cd + offsetof(CS_CodeDirectory, flags));
+    if ((flags & CS_LINKER_SIGNED) == CS_LINKER_SIGNED) {
+        *linker_signed = 1;
+    }
+
+    return LIBCD_SIGNATURE_QUERY_SUCCESS;
+}
