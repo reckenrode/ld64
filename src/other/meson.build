@@ -1,3 +1,18 @@
+dyldinfo = executable(
+    'dyldinfo',
+    dependencies : [
+        abstraction_dep,
+        llvm_dep,
+    ],
+    include_directories : [ '../ld' ],
+    install : true,
+    sources : [
+        configure_h,
+        'dyldinfo.cpp',
+    ],
+)
+install_man(meson.global_source_root() / 'doc/man/man1/dyldinfo.1')
+
 machocheck = executable(
     'machocheck',
     dependencies : [
