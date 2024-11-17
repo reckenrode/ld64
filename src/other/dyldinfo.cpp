@@ -427,7 +427,7 @@ DyldInfoPrinter<A>::DyldInfoPrinter(const uint8_t* fileContent, uint32_t fileLen
 	if ( printArch ) {
 		for (const ArchInfo* t=archInfoArray; t->archName != NULL; ++t) {
 			if ( (cpu_type_t)fHeader->cputype() == t->cpuType ) {
-				if ( t->isSubType && ((cpu_subtype_t)fHeader->cpusubtype() != t->cpuSubType) )
+				if ( ((cpu_subtype_t)fHeader->cpusubtype() != t->cpuSubType) )
 					continue;
 				printf("for arch %s:\n", t->archName);
 			}
@@ -2801,8 +2801,7 @@ int main(int argc, const char* argv[])
 						for (const ArchInfo* t=archInfoArray; t->archName != NULL; ++t) {
 							if ( strcmp(t->archName,arch) == 0 ) {
 								sPreferredArch = t->cpuType;
-								if ( t->isSubType )
-									sPreferredSubArch = t->cpuSubType;
+								sPreferredSubArch = t->cpuSubType;
 								found = true;
 								break;
 							}
