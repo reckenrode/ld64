@@ -11,6 +11,16 @@ InputFiles_cpp = configure_file(
     output : '@PLAINNAME@',
 )
 
+version_string_cpp = configure_file(
+    capture : true,
+    command : [
+        find_program('bash', native : true),
+        '-c',
+        'echo \'extern const char ld_classicVersionString[] = "@(#)PROGRAM:ld PROJECT:ld64-' + meson.project_version() + '\\n";\''
+    ],
+    output : 'version_string.cpp',
+)
+
 executable(
     'ld',
     cpp_args : [
@@ -43,6 +53,7 @@ executable(
     sources : [
         configure_h,
         InputFiles_cpp,
+        version_string_cpp,
         'FatFile.cpp',
         'Mangling.cpp',
         'Options.cpp',
