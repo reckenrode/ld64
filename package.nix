@@ -1,5 +1,6 @@
 {
   lib,
+  darwin,
   llvmPackages,
   meson,
   ninja,
@@ -29,8 +30,12 @@ llvmPackages.libcxxStdenv.mkDerivation (finalAttrs: {
     sed -i src/ld/Options.cpp \
       -e '1iconst char ld_classicVersionString[] = "@(#)PROGRAM:ld PROJECT:ld64-${finalAttrs.version}\\n";'
   '';
+  
+  xcodeHash = "sha256-+j7Ed/6aD46SJnr3DWPfWuYWylb2FNJRPmWsUVxZJHM=";
+  xcodeProject = "ld64.xcodeproj";
 
   nativeBuildInputs = [
+    darwin.xcodeProjectCheckHook
     meson
     ninja
     openssl
