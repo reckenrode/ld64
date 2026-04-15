@@ -186,6 +186,15 @@ static Architecture getArchForCPU(cpu_type_t cpuType, cpu_subtype_t cpuSubType,
 
   if (enforceCpuSubType)
     return AK_unknown;
+ 
+  // Check whether any archs has a compatible cpu type and return that if so.
+  for (const auto& targetArch : archs) {
+    auto [targetCpuType, _] = getCPUTypeFromArchitecture(targetArch);
+    if (cpuType == targetCpuType) {
+      return targetArch;
+    }
+  }
+
   return arch;
 }
 
