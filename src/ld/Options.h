@@ -33,7 +33,6 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
-#include <xpc/xpc.h>
 
 #include "ld.hpp"
 #include "Snapshot.h"
@@ -664,8 +663,6 @@ private:
 	void						cannotBeUsedWithBitcode(const char* arg);
 	void						loadImplictZipperFile(const char *path,std::vector<const char*>& paths);
 	void 						inferArchAndPlatform();
-	xpc_object_t 		makeAnalyticsObject() const;
-	void						sendAnalytics() const;
 
 
 //	ObjectFile::ReaderOptions			fReaderOptions;

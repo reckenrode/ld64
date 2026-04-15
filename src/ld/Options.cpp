@@ -35,13 +35,11 @@
 #include <spawn.h>
 #include <Availability.h>
 #include <tapi/tapi.h>
-#include <CoreAnalytics/CoreAnalytics.h>
 
 #include <algorithm>
 #include <vector>
 #include <map>
 #include <sstream>
-#include <xpc/xpc.h>
 
 #include "ld.hpp"
 #include "Options.h"
