@@ -472,7 +472,14 @@ uint64_t HeaderAndLoadCommandsAtom<A>::size() const
 	
 	if ( _hasRPathLoadCommands ) {
 		const std::vector<const char*>& rpaths = _options.rpaths();
+		std::set<std::string> seen;
+
 		for (std::vector<const char*>::const_iterator it = rpaths.begin(); it != rpaths.end(); ++it) {
+			std::string it_(*it);
+			if (seen.find(it_) != std::end(seen))
+				continue;
+			seen.insert(it_);
+
 			sz += alignedSize(sizeof(macho_rpath_command<P>) + strlen(*it) + 1);
 		}
 	}
@@ -581,8 +588,18 @@ uint32_t HeaderAndLoadCommandsAtom<A>::commandsCount() const
 	
 	count += _dylibLoadCommmandsCount;
 
-	count += _options.rpaths().size();
-	
+	{
+		const std::vector<const char*>& rpaths = _options.rpaths();
+		std::set<std::string> seen;
+		for (std::vector<const char*>::const_iterator it = rpaths.begin(); it != rpaths.end(); ++it) {
+			std::string it_(*it);
+			if (seen.find(it_) != std::end(seen))
+				continue;
+			seen.insert(it_);
+			++count;
+		}
+	}
+
 	if ( _hasSubFrameworkLoadCommand )
 		++count;
 	
@@ -1771,7 +1788,15 @@ void HeaderAndLoadCommandsAtom<A>::copyRawContent(uint8_t buffer[]) const
 
 	if ( _hasRPathLoadCommands ) {
 		const std::vector<const char*>& rpaths = _options.rpaths();
+		std::set<std::string> seen;
+
 		for (std::vector<const char*>::const_iterator it = rpaths.begin(); it != rpaths.end(); ++it) {
+			std::string it_(*it);
+			if (seen.find(it_) != std::end(seen))
+				continue;
+
+			seen.insert(it_);
+
 			p = this->copyRPathLoadCommand(p, *it);
 		}
 	}
